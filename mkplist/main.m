@@ -29,14 +29,14 @@ int main(int argc, const char * argv[]) {
             }
         }
         
-        if (keys.count != values.count) {
+        if (!keys.count || keys.count != values.count) {
             printf("mkplist 参数:\n");
             printf("-s              // 源文件 \n"
                    "-d              // 目标文件 \n "
                    "-urlstr         // 下载链接 \n"
                    "-identifier     // bundle-identifier \n"
                    "-version        // bundle-version \n"
-                   "-title          // title");
+                   "-title          // title\n");
             return -1;
         }
         
@@ -49,12 +49,19 @@ int main(int argc, const char * argv[]) {
         NSString* version = dict[@"version"];
         NSString* title = dict[@"title"];
         
-        des = [des stringByAppendingPathComponent:[urlstr.lastPathComponent.stringByDeletingPathExtension stringByAppendingPathExtension:@"plist"]];
+        if (![src hasPrefix:@"/"]) {
+            char buf[1024];
+            getcwd(buf, sizeof(buf));
+            src = [[NSString stringWithUTF8String:buf] stringByAppendingPathComponent:src];
+        }
+        
+        if (![des hasPrefix:@"/"]) {
+            char buf[1024];
+            getcwd(buf, sizeof(buf));
+            des = [[NSString stringWithUTF8String:buf] stringByAppendingPathComponent:des];
+        }
         
         NSFileManager* fmgr = [NSFileManager defaultManager];
-        
-        [fmgr removeItemAtPath:des error:nil];
-        
         
         NSMutableDictionary *plist_dict = [NSMutableDictionary dictionaryWithContentsOfFile:src];
         
